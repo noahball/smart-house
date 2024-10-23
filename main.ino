@@ -7,6 +7,8 @@
 const char *ssid = "Smart Home";
 const char *password = "securepassword";
 
+const int BLUE_PIN = 27;
+
 NetworkServer server(80);
 DHT dht(26, DHT22);
 
@@ -52,7 +54,38 @@ void loop() {
             client.println();
 
             // the content of the HTTP response follows the header:
-            client.printf("Hello, world!");
+            client.printf("<html>\
+            <head>\
+              <meta http-equiv='refresh' content='4'/>\
+              <meta name='viewport' content='width=device-width, initial-scale=1'>\
+              <link rel='stylesheet' href='https://use.fontawesome.com/releases/v5.7.2/css/all.css' integrity='sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr' crossorigin='anonymous'>\
+              <title>ESP32 DHT Server</title>\
+              <style>\
+                html { font-family: Arial; display: inline-block; margin: 0px auto; text-align: center;}\
+                h2 { font-size: 3.0rem; }\
+                p { font-size: 3.0rem; }\
+                .units { font-size: 1.2rem; }\
+                .dht-labels{ font-size: 1.5rem; vertical-align:middle; padding-bottom: 15px;}\
+              </style>\
+            </head>\
+            <body>\
+              <h2>Noah's Smart House</h2>\
+              <p>\
+                <i class='fas fa-thermometer-half' style='color:#ca3517;'></i>\
+                <span class='dht-labels'>Temperature</span>\
+                <span>%.2f</span>\
+                <sup class='units'>&deg;C</sup>\
+              </p>\
+              <p>\
+                <i class='fas fa-tint' style='color:#00add6;'></i>\
+                 <span class='dht-labels'>Humidity</span>\
+                <span>%.2f</span>\
+                <sup class='units'>&percnt;</sup>\
+              </p>\
+            </body>\
+            </html>",
+           readDHTTemperature(), readDHTHumidity()
+          );
 
             // The HTTP response ends with another blank line:
             client.println();
@@ -64,10 +97,45 @@ void loop() {
         } else if (c != '\r') {  // if you got anything else but a carriage return character,
           currentLine += c;      // add it to the end of the currentLine
         }
+
+        // Check to see if the client request was "GET /H" or "GET /L":
+        /* if (currentLine.endsWith("GET /H")) {
+          digitalWrite(LED_BUILTIN, HIGH);  // GET /H turns the LED on
+        }
+        if (currentLine.endsWith("GET /L")) {
+          digitalWrite(LED_BUILTIN, LOW);  // GET /L turns the LED off
+        } */
       }
     }
     // close the connection:
     client.stop();
     Serial.println("Client Disconnected.");
+  }
+}
+
+float readDHTTemperature() {
+  // Sensor readings may also be up to 2 seconds
+  // Read temperature as Celsius (the default)
+  float t = dht.readTemperature();
+  if (isnan(t)) {    
+    Serial.println("Failed to read from DHT sensor!");
+    return -1;
+  }
+  else {
+    Serial.println(t);
+    return t;
+  }
+}
+
+float readDHTHumidity() {
+  // Sensor readings may also be up to 2 seconds
+  float h = dht.readHumidity();
+  if (isnan(h)) {
+    Serial.println("Failed to read from DHT sensor!");
+    return -1;
+  }
+  else {
+    Serial.println(h);
+    return h;
   }
 }
