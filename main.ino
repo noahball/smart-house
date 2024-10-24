@@ -1,3 +1,7 @@
+/*
+  WAP code partially sourced from WiFiAccessPoint.ino by Elochukwu Ifediora (fedy0)
+*/
+
 #include <WiFi.h>
 #include <NetworkClient.h>
 #include <WiFiAP.h>
@@ -13,6 +17,9 @@ NetworkServer server(80);
 DHT dht(26, DHT22);
 
 void setup() {
+  pinMode(BLUE_PIN, OUTPUT);
+  // digitalWrite(BLUE_PIN, HIGH);
+
   Serial.begin(115200);
   Serial.println();
   dht.begin();
@@ -64,24 +71,26 @@ void loop() {
                 html { font-family: Arial; display: inline-block; margin: 0px auto; text-align: center;}\
                 h2 { font-size: 3.0rem; }\
                 p { font-size: 3.0rem; }\
-                .units { font-size: 1.2rem; }\
-                .dht-labels{ font-size: 1.5rem; vertical-align:middle; padding-bottom: 15px;}\
+                .units, .toggle { font-size: 1.2rem; }\
+                .dht-labels { font-size: 1.5rem; vertical-align:middle; }\
               </style>\
             </head>\
             <body>\
               <h2>Noah's Smart House</h2>\
               <p>\
-                <i class='fas fa-thermometer-half' style='color:#ca3517;'></i>\
+                <i class='fas fa-thermometer-half' style='color: #ca3517;'></i>\
                 <span class='dht-labels'>Temperature</span>\
                 <span>%.2f</span>\
                 <sup class='units'>&deg;C</sup>\
               </p>\
-              <p>\
+              <p style='margin-bottom: 0;'>\
                 <i class='fas fa-tint' style='color:#00add6;'></i>\
                  <span class='dht-labels'>Humidity</span>\
                 <span>%.2f</span>\
                 <sup class='units'>&percnt;</sup>\
               </p>\
+              <br>\
+              <p class='toggle'><a href='/H'>Light On</a> | <a href='/L'>Light Off</a></p>\
             </body>\
             </html>",
            readDHTTemperature(), readDHTHumidity()
@@ -99,12 +108,12 @@ void loop() {
         }
 
         // Check to see if the client request was "GET /H" or "GET /L":
-        /* if (currentLine.endsWith("GET /H")) {
-          digitalWrite(LED_BUILTIN, HIGH);  // GET /H turns the LED on
+        if (currentLine.endsWith("GET /H")) {
+          digitalWrite(BLUE_PIN, HIGH);  // GET /H turns the LED on
         }
         if (currentLine.endsWith("GET /L")) {
-          digitalWrite(LED_BUILTIN, LOW);  // GET /L turns the LED off
-        } */
+          digitalWrite(BLUE_PIN, LOW);  // GET /L turns the LED off
+        }
       }
     }
     // close the connection:
