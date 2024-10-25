@@ -11,13 +11,28 @@
 const char *ssid = "Smart Home";
 const char *password = "securepassword";
 
+// LED
 const int BLUE_PIN = 27;
+
+// Distance Sensor
+const int trigPin = 18;
+const int echoPin = 19;
+
+// Piezo Speaker
+const int buzzer = 16;
+
+float duration, distance;
+
+bool armed = false;
 
 NetworkServer server(80);
 DHT dht(26, DHT22);
 
 void setup() {
   pinMode(BLUE_PIN, OUTPUT);
+  pinMode(trigPin, OUTPUT);
+  pinMode(echoPin, INPUT);
+  pinMode(buzzer, OUTPUT);
   // digitalWrite(BLUE_PIN, HIGH);
 
   Serial.begin(115200);
@@ -90,7 +105,8 @@ void loop() {
                 <sup class='units'>&percnt;</sup>\
               </p>\
               <br>\
-              <p class='toggle'><a href='/H'>Light On</a> | <a href='/L'>Light Off</a></p>\
+              <p class='toggle'><a href='/H'>Light On</a> | <a href='/L'>Light Off</a></p><br>\
+              <p class='toggle'><a href='/A'>Arm Alarm</a> | <a href='/D'>Disarm Alarm</a></p>\
             </body>\
             </html>",
            readDHTTemperature(), readDHTHumidity()
@@ -114,11 +130,40 @@ void loop() {
         if (currentLine.endsWith("GET /L")) {
           digitalWrite(BLUE_PIN, LOW);  // GET /L turns the LED off
         }
+        if (currentLine.endsWith("GET /A")) {
+          armed = true;  // GET /A arms the alarm
+        }
+        if (currentLine.endsWith("GET /D")) {
+          armed = false;  // GET /D disarms the alarm
+        }
       }
     }
     // close the connection:
     client.stop();
     Serial.println("Client Disconnected.");
+  }
+
+  digitalWrite(trigPin, LOW);
+  
+  delayMicroseconds(2);
+  digitalWrite(trigPin, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(trigPin, LOW);
+
+  duration = pulseIn(echoPin, HIGH);
+  distance = (duration*.0343)/2;
+
+  Serial.print("Distance: ");
+  Serial.println(distance);
+
+  Serial.println(armed);
+
+  delay(100);
+
+  if (distance < 8 && armed) {
+      tone(buzzer, 1000); // Send 1KHz sound signal...
+      delay(1000);         // ...for 1 sec
+      noTone(buzzer);     // Stop sound...
   }
 }
 
